@@ -5,8 +5,7 @@ namespace Tech_world_Backend.DTOs.UserProfile
     public class LoginDto
     {
         [Required]
-        [EmailAddress]
-        public string? UserEmail { get; set; }
+        public string? FirstName { get; set; }
 
         [Required]
         [MinLength(6 , ErrorMessage = "Password must be at least 6 characters.")]

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Tech_world_Backend.Auth;
 using Tech_world_Backend.DTOs.UserProfile;
 using Tech_world_Backend.Models;
 using Tech_world_Backend.Models.UserProfile;
@@ -12,12 +13,32 @@ namespace Tech_world_Backend.Controllers.UserController
     public class UsersController : ControllerBase
     {
         private readonly TechWorldDbContext _techWorldDbContext;
-        public UsersController(TechWorldDbContext techWorldDbContext)
+        private readonly JwtTokenService _jwtTokenService;
+        public UsersController(TechWorldDbContext techWorldDbContext, JwtTokenService jwtTokenService)
         {
             _techWorldDbContext = techWorldDbContext;
+            _jwtTokenService = jwtTokenService;
         }
 
-        [HttpPost]
+
+        [HttpPost("login")]
+        public ActionResult Login([FromBody] LoginDto loginDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+            var userDto = _techWorldDbContext.User.FirstOrDefault(u => u.FirstName == loginDto.FirstName);
+            if(userDto != null && loginDto.UserPassword == userDto.PassWord)
+            {
+                var token = _jwtTokenService.GenerateToken(userDto.FirstName,"Admin");
+                return Ok(new { Token = token });
+            }
+
+            return Unauthorized("Invalid credentials");
+        }
+
+        [HttpPost("register")]
         public async Task<ActionResult<RegisterDto>> RegisterUser([FromBody] RegisterDto registerDto)
         {
             if (!ModelState.IsValid)
